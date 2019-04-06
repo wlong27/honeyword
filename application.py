@@ -69,7 +69,8 @@ def logout():
 def register():
     error = None
     if request.method == 'POST':
-        conn = connect_db()      
+        conn = connect_db()
+        conn.isolation_level = None 
         #Insert into DB the user name and password
         #username = request.form['username']
         # c.execute('select * from Users where userName = "' + username + '"')       
@@ -79,9 +80,8 @@ def register():
         #     return render_template('register.html', error=error)
         #else:
         try:
-            with conn:
-                conn.execute('SELECT * FROM Users')                
-                #conn.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+            with conn:                      
+                conn.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
                 session['logged_in'] = True
                 session['username'] = request.form['username']
                 return redirect(url_for('home'))  
