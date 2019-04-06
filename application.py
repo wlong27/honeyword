@@ -68,30 +68,29 @@ def logout():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
-    g.db = connect_db()
-    if request.method == 'POST':         
+    if request.method == 'POST':
+        conn = connect_db()
+        c = conn.cursor()         
         #Insert into DB the user name and password
         username = request.form['username']
-        cur = g.db.execute('select * from Users where userName = "' + username + '"')       
-        if (len(cur.fetchall()) > 0):
-            g.db.close() 
+        c.execute('select * from Users where userName = "' + username + '"')       
+        if (len(c.fetchall()) > 0):
+            conn.close()
             error = "Username already exists! Please try again."
             return render_template('register.html', error=error)
         else:
-            cur2 = g.db.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+            c.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
             session['logged_in'] = True
             session['username'] = request.form['username']
             flash('Succesfully registered and logged in.')
-            g.db.commit()
-            g.db.close()              
+            conn.commit()
+            conn.close()              
             return redirect(url_for('home'))                
-    else:
-        g.db.close() 
+    else:  
         return render_template('register.html', error=error)
 
 def connect_db():
     return sqlite3.connect(app.database, timeout=10)
 
-# start the server with the 'run()' method
-if __name__ == '__main__':
+# start the server with the 'run()' methodif __name__ == '__main__':
     app.run(debug=True)
