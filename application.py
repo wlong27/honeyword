@@ -78,7 +78,7 @@ def register():
             g.db.close()
             return render_template('register.html', error=error)
         else:
-            cur = g.db.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+            cur2 = g.db.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
             session['logged_in'] = True
             session['username'] = request.form['username']
             flash('Succesfully registered and logged in.')
