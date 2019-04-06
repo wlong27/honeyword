@@ -86,9 +86,7 @@ def register():
                 session['username'] = request.form['username']
                 return redirect(url_for('home'))  
         except:
-            
-            error="SQL error occurred"      
-    
+            error="SQL error occurred"
     return render_template('register.html', error=error)
 
 def connect_db():
