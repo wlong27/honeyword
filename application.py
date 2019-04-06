@@ -27,7 +27,13 @@ def login_required(f):
 @login_required
 def home():
     g.db = connect_db()
-    cur = g.db.execute('select * from Users')
+    users = {}
+    username = session['username']
+    if (username == 'admin'):
+        cur = g.db.execute('select * from Users')
+    else:
+        cur = g.db.execute('select * from Users where userName = "' + username + '"')
+    
     users = [dict(username=row[0], hash=row[1]) for row in cur.fetchall()]
     g.db.close()
     return render_template('index.html',users=users)
@@ -37,10 +43,17 @@ def home():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != 'admin' or request.form['password'] != 'admin':
-            error = 'Invalid Credentials. Please try again.'
+        #Check if username and password hash exists in DB
+        g.db = connect_db()
+        username = request.form['username']
+        hash = request.form['password']
+        cur = g.db.execute('select * from Users where userName="{0}" and passwdHash="{1}"'.format(username, hash))       
+        if (len(cur.fetchall()) == 0):
+            error = 'User not found or Invalid Credentials. Please try again!'
+            flash('Note: Username is case-sensitive.')
         else:
             session['logged_in'] = True
+            session['username'] = request.form['username']
             flash('You were logged in.')
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
@@ -51,6 +64,29 @@ def logout():
     session.pop('logged_in', None)
     flash('You were logged out.')
     return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    error = None
+    if request.method == 'POST':         
+        #Insert into DB the user name and password
+        g.db = connect_db()
+        username = request.form['username']
+        cur = g.db.execute('select * from Users where userName = "' + username + '"')       
+        if (len(cur.fetchall()) > 0):
+            error = "Username already exists! Please try again."
+            g.db.close()
+            return render_template('register.html', error=error)
+        else:
+            cur = g.db.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+            session['logged_in'] = True
+            session['username'] = request.form['username']
+            flash('Succesfully registered and logged in.')
+            g.db.commit()
+            g.db.close()  
+            return redirect(url_for('home'))
+    else:
+        return render_template('register.html', error=error)
 
 def connect_db():
     return sqlite3.connect(app.database)

@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Flask Intro - login page</title>
+    <title>Honeyword Demo - Login page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="static/bootstrap.min.css" rel="stylesheet" media="screen">
   </head>
@@ -21,6 +21,8 @@
       {% for message in get_flashed_messages() %}
         {{ message }}
       {% endfor %}
+
+      <p>Click <a href="/register">here</a> to register new user.</p>
     </div>
   </body>
 </html>
