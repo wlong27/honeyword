@@ -79,15 +79,17 @@ def register():
         #     error = "Username already exists! Please try again."
         #     return render_template('register.html', error=error)
         #else:
-        c.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
-        session['logged_in'] = True
-        session['username'] = request.form['username']
-        flash('Succesfully registered and logged in.')
-        conn.commit()
-        conn.close()              
-        return redirect(url_for('home'))               
-    else:  
-        return render_template('register.html', error=error)
+        try:
+            with conn:
+                conn.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+                session['logged_in'] = True
+                session['username'] = request.form['username']
+                return redirect(url_for('home'))  
+        except:
+            
+            error="SQL error occurred"      
+    
+    return render_template('register.html', error=error)
 
 def connect_db():
     return sqlite3.connect(app.database, timeout=10)
