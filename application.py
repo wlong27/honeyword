@@ -6,6 +6,12 @@ import sqlite3
 # create the application object
 app = Flask(__name__)
 
+connection = sqlite3.connect(":memory:", check_same_thread=False)
+cur = connection.cursor()
+cur.execute('CREATE TABLE Users(userName TEXT, passwdHash TEXT)')
+cur.execute('INSERT INTO Users VALUES("admin", "123")')
+
+
 # config
 app.secret_key = 'this is my secret key'
 app.database = "sample.db"
@@ -26,16 +32,16 @@ def login_required(f):
 @app.route('/')
 @login_required
 def home():
-    g.db = connect_db()
+    #g.db = connect_db()
     users = {}
     username = session['username']
     if (username == 'admin'):
-        cur = g.db.execute('select * from Users')
+        cur.execute('select * from Users')
     else:
-        cur = g.db.execute('select * from Users where userName = "' + username + '"')
+        cur.execute('select * from Users where userName = "' + username + '"')
     
     users = [dict(username=row[0], hash=row[1]) for row in cur.fetchall()]
-    g.db.close()
+    #g.db.close()
     return render_template('index.html',users=users)
 
 # route for handling the login page logic
@@ -44,21 +50,17 @@ def login():
     error = None
     if request.method == 'POST':
         #Check if username and password hash exists in DB
-        g.db = connect_db()
-        g.db.execute('INSERT INTO Users VALUES("test2","test2")')
-        g.db.commit()
+        #g.db = connect_db()   
         username = request.form['username']
         hash = request.form['password']
-        cur = g.db.execute('select * from Users where userName="{0}" and passwdHash="{1}"'.format(username, hash))       
+        cur.execute('select * from Users where userName="{0}" and passwdHash="{1}"'.format(username, hash))       
         if (len(cur.fetchall()) == 0):
             error = 'User not found or Invalid Credentials. Please try again!'
             flash('Note: Username is case-sensitive.')
-            g.db.close()
         else:
             session['logged_in'] = True
             session['username'] = request.form['username']
             flash('You were logged in.')
-            g.db.close()
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
 
@@ -73,29 +75,25 @@ def logout():
 def register():
     error = None
     if request.method == 'POST':
-        conn = connect_db()
-        conn.isolation_level = None 
         #Insert into DB the user name and password
-        #username = request.form['username']
-        # c.execute('select * from Users where userName = "' + username + '"')       
-        # if (len(c.fetchall()) > 0):
-        #     conn.close()
-        #     error = "Username already exists! Please try again."
-        #     return render_template('register.html', error=error)
-        #else:
-        try:
-            with conn:                      
-                conn.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+        username = request.form['username']
+        cur.execute('select * from Users where userName = "' + username + '"')       
+        if (len(cur.fetchall()) > 0):      
+            error = "Username already exists! Please try again."
+            return render_template('register.html', error=error)
+        else:
+            try:            
+                cur.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
                 session['logged_in'] = True
                 session['username'] = request.form['username']
                 return redirect(url_for('home'))  
-        except Exception as e:
-            error=e
-        conn.close()
+            except Exception as e:
+                error=e
     return render_template('register.html', error=error)
 
 def connect_db():
-    return sqlite3.connect(app.database, timeout=10)
+    return sqlite3.connect(":memory:")
+
 
 # start the server with the 'run()' method
 if __name__ == '__main__':
