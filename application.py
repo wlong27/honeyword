@@ -69,10 +69,9 @@ def logout():
 def register():
     error = None
     if request.method == 'POST':
-        conn = connect_db()
-        c = conn.cursor()         
+        conn = connect_db()      
         #Insert into DB the user name and password
-        username = request.form['username']
+        #username = request.form['username']
         # c.execute('select * from Users where userName = "' + username + '"')       
         # if (len(c.fetchall()) > 0):
         #     conn.close()
