@@ -73,19 +73,19 @@ def register():
         c = conn.cursor()         
         #Insert into DB the user name and password
         username = request.form['username']
-        c.execute('select * from Users where userName = "' + username + '"')       
-        if (len(c.fetchall()) > 0):
-            conn.close()
-            error = "Username already exists! Please try again."
-            return render_template('register.html', error=error)
-        else:
-            c.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
-            session['logged_in'] = True
-            session['username'] = request.form['username']
-            flash('Succesfully registered and logged in.')
-            conn.commit()
-            conn.close()              
-            return redirect(url_for('home'))                
+        # c.execute('select * from Users where userName = "' + username + '"')       
+        # if (len(c.fetchall()) > 0):
+        #     conn.close()
+        #     error = "Username already exists! Please try again."
+        #     return render_template('register.html', error=error)
+        #else:
+        c.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+        session['logged_in'] = True
+        session['username'] = request.form['username']
+        flash('Succesfully registered and logged in.')
+        conn.commit()
+        conn.close()              
+        return redirect(url_for('home'))               
     else:  
         return render_template('register.html', error=error)
 
