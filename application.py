@@ -80,7 +80,8 @@ def register():
         #else:
         try:
             with conn:
-                conn.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
+                conn.execute('SELECT * FROM Users')                
+                #conn.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
                 session['logged_in'] = True
                 session['username'] = request.form['username']
                 return redirect(url_for('home'))  
