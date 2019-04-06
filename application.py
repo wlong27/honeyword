@@ -89,7 +89,7 @@ def register():
         return render_template('register.html', error=error)
 
 def connect_db():
-    return sqlite3.connect(app.database)
+    return sqlite3.connect(app.database, timeout=10)
 
 # start the server with the 'run()' method
 if __name__ == '__main__':
