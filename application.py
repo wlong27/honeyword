@@ -51,10 +51,12 @@ def login():
         if (len(cur.fetchall()) == 0):
             error = 'User not found or Invalid Credentials. Please try again!'
             flash('Note: Username is case-sensitive.')
+            g.db.close()
         else:
             session['logged_in'] = True
             session['username'] = request.form['username']
             flash('You were logged in.')
+            g.db.close()
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
 
@@ -87,6 +89,7 @@ def register():
                 return redirect(url_for('home'))  
         except Exception as e:
             error=e
+        conn.close()
     return render_template('register.html', error=error)
 
 def connect_db():
