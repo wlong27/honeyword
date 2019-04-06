@@ -7,7 +7,7 @@ import sqlite3
 app = Flask(__name__)
 
 # config
-app.secret_key = 'my precious'
+app.secret_key = 'this is my secret key'
 app.database = "sample.db"
 
 
