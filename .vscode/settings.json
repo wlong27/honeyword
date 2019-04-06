@@ -1,4 +1,6 @@
 {
     "python.linting.pylintEnabled": false,
-    "python.pythonPath": "C:\\Users\\lixer_000\\AppData\\Local\\Programs\\Python\\Python36\\python.exe"
+    "python.pythonPath": "C:\\Users\\lixer_000\\AppData\\Local\\Programs\\Python\\Python36\\python.exe",
+    "appService.defaultWebAppToDeploy": "/subscriptions/950dee31-7191-4a3f-b5f5-403a3893b4dd/resourceGroups/appsvc_rg_linux_centralus/providers/Microsoft.Web/sites/honeyword-demo",
+    "appService.deploySubpath": ""
 }
