@@ -45,6 +45,8 @@ def login():
     if request.method == 'POST':
         #Check if username and password hash exists in DB
         g.db = connect_db()
+        g.db.execute('INSERT INTO Users VALUES("test2","test2")')
+        g.db.commit()
         username = request.form['username']
         hash = request.form['password']
         cur = g.db.execute('select * from Users where userName="{0}" and passwdHash="{1}"'.format(username, hash))       
