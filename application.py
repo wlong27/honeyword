@@ -68,14 +68,14 @@ def logout():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
+    g.db = connect_db()
     if request.method == 'POST':         
         #Insert into DB the user name and password
-        g.db = connect_db()
         username = request.form['username']
         cur = g.db.execute('select * from Users where userName = "' + username + '"')       
         if (len(cur.fetchall()) > 0):
+            g.db.close() 
             error = "Username already exists! Please try again."
-            g.db.close()
             return render_template('register.html', error=error)
         else:
             cur2 = g.db.execute('INSERT INTO Users VALUES("{0}","{1}")'.format(request.form['username'], request.form['password']))
@@ -83,9 +83,10 @@ def register():
             session['username'] = request.form['username']
             flash('Succesfully registered and logged in.')
             g.db.commit()
-            g.db.close()  
-            return redirect(url_for('home'))
+            g.db.close()              
+            return redirect(url_for('home'))                
     else:
+        g.db.close() 
         return render_template('register.html', error=error)
 
 def connect_db():
