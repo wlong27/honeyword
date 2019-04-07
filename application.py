@@ -3,6 +3,7 @@ from flask import Flask, render_template, redirect, url_for, request, session, f
 from functools import wraps
 import bcrypt
 import sqlite3
+import honeyaux
 
 # create the application object
 app = Flask(__name__)
@@ -11,26 +12,14 @@ index = 0
 connection = sqlite3.connect(":memory:", check_same_thread=False)
 cur = connection.cursor()
 cur.execute('CREATE TABLE Users(userName TEXT, passwdHash TEXT, idx INTEGER)')
-cur.execute('CREATE TABLE RealIndex(userName TEXT, idx INTEGER)')
-
+cur.execute('CREATE TABLE UsersIndex(userName TEXT, idx INTEGER)')
 
 #init admin account
 password = "123"
-hashed1 = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-hashed2 = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-hashed3 = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-index += 1
-cur.execute('INSERT INTO Users VALUES("admin","{0}","{1}")'.format(hashed1.decode('utf-8'), index))
-index += 1
-cur.execute('INSERT INTO Users VALUES("admin","{0}","{1}")'.format(hashed2.decode('utf-8'), index))
-index += 1
-cur.execute('INSERT INTO Users VALUES("admin","{0}","{1}")'.format(hashed3.decode('utf-8'), index))
-
+index = honeyaux.insert_new('admin','123', cur, index)
 
 # config
 app.secret_key = 'this is my secret key'
-#app.database = "sample.db"
-
 
 # login required decorator
 def login_required(f):
@@ -57,13 +46,25 @@ def home():
     users = [dict(username=row[0], hash=row[1], idx=row[2]) for row in cur.fetchall()]
     return render_template('index.html',users=users)
 
+#To check for honeywords
+@app.route('/tracker')
+@login_required
+def tracker():
+    users = {}
+    username = session['username']
+    if (username == 'admin'):
+        cur.execute('select * from UsersIndex')
+        users = [dict(username=row[0], idx=row[1]) for row in cur.fetchall()]
+        return render_template('tracker.html',users=users)
+    else:
+        return "You do not have permission for this page! You must be admin"
+
 # route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
         #Check if username and password hash exists in DB
-        #g.db = connect_db()   
         username = request.form['username']
         password = request.form['password']
         cur.execute('select * from Users where userName="{0}"'.format(username))
@@ -104,17 +105,13 @@ def register():
         else:
             try:       
                 global index
-                index += 1
-                cur.execute('INSERT INTO Users VALUES("{0}","{1}","{2}")'.format(request.form['username'], request.form['password'], index))
+                index = honeyaux.insert_new(request.form['username'],request.form['password'], cur, index)
                 session['logged_in'] = True
                 session['username'] = request.form['username']
                 return redirect(url_for('home'))  
             except Exception as e:
                 error=e
     return render_template('register.html', error=error)
-
-def connect_db():
-    return sqlite3.connect(":memory:")
 
 
 # start the server with the 'run()' method

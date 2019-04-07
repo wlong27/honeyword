@@ -7,14 +7,13 @@
   </head>
   <body>
     <div class="container">
-      <h1>User Credentials</h1>
+      <h1>List of Tracked Index</h1>
       <br>
       <p>Click <a href="/logout">here</a> to logout.</p>
-      <p>Click <a href="/tracker">here</a> to get the tracked index for the actual password hash</p>
+      <p>Click <a href="/">here</a> to go back to User Credentials.</p>
       <br>
       {% for user in users %}
-        <strong>User Name:</strong> {{ user.username }} <br>
-        <strong>Password Hash:</strong> {{ user.hash }} <br>
+        <strong>User Name:</strong> {{ user.username }} <br>    
         <strong>Index:</strong> {{ user.idx }} <br>
         <br>
       {% endfor %}

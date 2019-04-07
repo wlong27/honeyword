@@ -51,9 +51,9 @@ tn = 0.08            # probability that a generated password is a ``tough nut''
                      # otherwise following parameters apply
 
 # probabilities p1, p2, p3 add up to 1 (heuristically chosen)
-p1 = 0.10            # chance of a "random" char at this position (see code)
+p1 = 0.40            # chance of a "random" char at this position (see code)
 p2 = 0.40            # chance of a markov-order-1 char at this position (see code)
-p3 = 0.50            # choice of continuing copying from same word
+p3 = 0.20            # choice of continuing copying from same word
 
 q = 0.03             # add 3% noise words to list of passwords
 
@@ -272,8 +272,8 @@ def main():
 
 # import cProfile
 # cProfile.run("main()")
+#main()
 
-main()
 
 
 
