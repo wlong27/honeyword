@@ -8,15 +8,19 @@ import honeyaux
 # create the application object
 app = Flask(__name__)
 
-index = 0
+index = -1
 connection = sqlite3.connect(":memory:", check_same_thread=False)
 cur = connection.cursor()
-cur.execute('CREATE TABLE Users(userName TEXT, passwdHash TEXT, idx INTEGER)')
+cur.execute('CREATE TABLE Users(userName TEXT, passwdHash TEXT, idx INTEGER, TEXT word)')
 cur.execute('CREATE TABLE UsersIndex(userName TEXT, idx INTEGER)')
 
 #init admin account
 password = "123"
-index = honeyaux.insert_new('admin','123', cur, index)
+while (index == -1):
+    print('init admin')
+    index = honeyaux.insert_new('admin','123', cur, index)
+
+honeyaux.honey_checker('admin','123',cur)
 
 # config
 app.secret_key = 'this is my secret key'
@@ -32,7 +36,7 @@ def login_required(f):
             return redirect(url_for('login'))
     return wrap
 
-# use decorators to link the function to a url
+#Display list of user credentials. Admin can see all
 @app.route('/')
 @login_required
 def home():
@@ -43,10 +47,10 @@ def home():
     else:
         cur.execute('select * from Users where userName = "' + username + '"')
     
-    users = [dict(username=row[0], hash=row[1], idx=row[2]) for row in cur.fetchall()]
+    users = [dict(username=row[0], hash=row[1], idx=row[2], word=row[3]) for row in cur.fetchall()]
     return render_template('index.html',users=users)
 
-#To check for honeywords
+#To check for actual password index
 @app.route('/tracker')
 @login_required
 def tracker():
@@ -54,11 +58,11 @@ def tracker():
     username = session['username']
     if (username == 'admin'):
         cur.execute('select * from UsersIndex')
-        users = [dict(username=row[0], idx=row[1]) for row in cur.fetchall()]
-        return render_template('tracker.html',users=users)
     else:
-        return "You do not have permission for this page! You must be admin"
-
+        cur.execute('select * from UsersIndex where userName = "' + username + '"')
+    users = [dict(username=row[0], idx=row[1]) for row in cur.fetchall()]
+    return render_template('tracker.html',users=users)
+ 
 # route for handling the login page logic
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -67,17 +71,14 @@ def login():
         #Check if username and password hash exists in DB
         username = request.form['username']
         password = request.form['password']
-        cur.execute('select * from Users where userName="{0}"'.format(username))
-        hashes = []
-        for row in cur.fetchall():
-            hashes.append(row[1])
-        if (len(hashes) == 0):
+        status = honeyaux.honey_checker(username, password, cur)
+
+        if (status == 0):
             error = 'User not found or Invalid Credentials. Please try again!'
             flash('Note: Username is case-sensitive.')
-        else :
-            valid = bcrypt.checkpw(password.encode('utf-8'), hashes[0].encode('utf-8'))
-            print(valid)
-            
+        elif (status == -1):
+            error = 'Honey word detected! Suspicious login attempts.'
+        else :                
             session['logged_in'] = True
             session['username'] = request.form['username']
             flash('You were logged in.')
@@ -91,10 +92,10 @@ def logout():
     flash('You were logged out.')
     return redirect(url_for('login'))
 
+#Register new user
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
-   
     if request.method == 'POST':
         #Insert into DB the user name and password
         username = request.form['username']
@@ -106,9 +107,12 @@ def register():
             try:       
                 global index
                 index = honeyaux.insert_new(request.form['username'],request.form['password'], cur, index)
-                session['logged_in'] = True
-                session['username'] = request.form['username']
-                return redirect(url_for('home'))  
+                if (index == -1):
+                    error = "Error inserting into DB"
+                else:
+                    session['logged_in'] = True
+                    session['username'] = request.form['username']
+                    return redirect(url_for('home'))  
             except Exception as e:
                 error=e
     return render_template('register.html', error=error)

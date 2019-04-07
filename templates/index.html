@@ -15,6 +15,7 @@
       {% for user in users %}
         <strong>User Name:</strong> {{ user.username }} <br>
         <strong>Password Hash:</strong> {{ user.hash }} <br>
+        <strong>Password PlainText:</strong> {{ user.word }} <br>
         <strong>Index:</strong> {{ user.idx }} <br>
         <br>
       {% endfor %}
